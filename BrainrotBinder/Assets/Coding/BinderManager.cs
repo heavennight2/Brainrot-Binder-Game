@@ -8,11 +8,14 @@ public class BinderManager : MonoBehaviour
     public GameObject wrongFeedback;
     public Slider brainrotBar;
 
+    public GameObject[] characterPages;
+
     public int brainrotPerStudent = 20;
     public int wrongPenalty = 10;
 
     private GameObject currentStudent;
     private int correctCharacter;
+    private int currentPage;
 
     private void Start()
     {
@@ -29,7 +32,46 @@ public class BinderManager : MonoBehaviour
         correctCharacter = requestedCharacter;
 
         binderPanel.SetActive(true);
+
+        currentPage =
+            Random.Range(0, characterPages.Length);
+
+        ShowPage(currentPage);
+
         Time.timeScale = 0f;
+    }
+
+    public void NextPage()
+    {
+        currentPage++;
+
+        if (currentPage >= characterPages.Length)
+        {
+            currentPage = 0;
+        }
+
+        ShowPage(currentPage);
+    }
+
+    public void PreviousPage()
+    {
+        currentPage--;
+
+        if (currentPage < 0)
+        {
+            currentPage =
+                characterPages.Length - 1;
+        }
+
+        ShowPage(currentPage);
+    }
+
+    private void ShowPage(int pageNumber)
+    {
+        for (int i = 0; i < characterPages.Length; i++)
+        {
+            characterPages[i].SetActive(i == pageNumber);
+        }
     }
 
     public void ChooseCharacter(int choice)
