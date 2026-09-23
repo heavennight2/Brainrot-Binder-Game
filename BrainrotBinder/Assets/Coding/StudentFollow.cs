@@ -4,75 +4,99 @@ using TMPro;
 public class StudentFollow : MonoBehaviour
 {
     public Transform player;
+
     public float speed = 2f;
+    public float leaveSpeed = 4f;
+    public float despawnLimit = 10f;
+
     public TMP_Text requestBubbleText;
 
     private Rigidbody2D rb;
+    private SpriteRenderer spriteRenderer;
 
+    private Vector2 moveDirection;
     private bool isLeaving = false;
-    private Vector2 leaveTarget;
-
     private int requestedCharacter;
 
- private string[] characterNames =
-{
-    "TUNG TUNG TUNG SAHUR",
-    "BALLERINA CAPPUCCINA",
-    "TRALALERO TRALALA",
-    "CAPPUCCINO ASSASSINO"
-};
+    private string[] characterNames =
+    {
+        "TUNG TUNG TUNG SAHUR",
+        "BALLERINA CAPPUCCINA",
+        "TRALALERO TRALALA",
+        "CAPPUCCINO ASSASSINO"
+    };
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     private void Start()
     {
+        if (transform.position.x > 0)
+        {
+            moveDirection = Vector2.left;
+        }
+        else
+        {
+            moveDirection = Vector2.right;
+        }
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.flipX =
+                moveDirection == Vector2.right;
+        }
+
         requestedCharacter =
             Random.Range(0, characterNames.Length);
 
-        requestBubbleText.text =
-            "SHOW ME " +
-            characterNames[requestedCharacter] +
-            "!";
+        if (requestBubbleText != null)
+        {
+            requestBubbleText.text =
+                "SHOW ME " +
+                characterNames[requestedCharacter] +
+                "!";
+
+            requestBubbleText.gameObject.SetActive(false);
+        }
     }
 
     private void FixedUpdate()
     {
-        if (isLeaving)
+        float currentSpeed =
+            isLeaving ? leaveSpeed : speed;
+
+        rb.linearVelocity =
+            moveDirection * currentSpeed;
+
+        if (moveDirection == Vector2.left &&
+            transform.position.x <= -despawnLimit)
         {
-            Vector2 leaveDirection =
-                (leaveTarget - rb.position).normalized;
-
-            rb.linearVelocity = leaveDirection * speed;
-
-            if (Vector2.Distance(rb.position, leaveTarget) < 0.2f)
-            {
-                Destroy(gameObject);
-            }
-
-            return;
+            Destroy(gameObject);
         }
 
-        if (player == null)
+        if (moveDirection == Vector2.right &&
+            transform.position.x >= despawnLimit)
         {
-            rb.linearVelocity = Vector2.zero;
-            return;
+            Destroy(gameObject);
         }
-
-        Vector2 direction =
-            ((Vector2)player.position - rb.position).normalized;
-
-        rb.linearVelocity = direction * speed;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player") && !isLeaving)
         {
+            rb.linearVelocity = Vector2.zero;
+
+            if (requestBubbleText != null)
+            {
+                requestBubbleText.gameObject.SetActive(true);
+            }
+
             BinderManager binderManager =
-                FindFirstObjectByType<BinderManager>();
+                FindAnyObjectByType<BinderManager>();
 
             binderManager.OpenBinder(
                 gameObject,
@@ -85,6 +109,7 @@ public class StudentFollow : MonoBehaviour
     {
         isLeaving = true;
 
+       
         if (requestBubbleText != null)
         {
             requestBubbleText.gameObject.SetActive(false);
@@ -97,18 +122,5 @@ public class StudentFollow : MonoBehaviour
         {
             studentCollider.enabled = false;
         }
-
-        Vector2 awayDirection =
-            ((Vector2)transform.position -
-             (Vector2)player.position).normalized;
-
-        if (awayDirection == Vector2.zero)
-        {
-            awayDirection = Vector2.right;
-        }
-
-        leaveTarget =
-            (Vector2)transform.position +
-            awayDirection * 10f;
     }
 }

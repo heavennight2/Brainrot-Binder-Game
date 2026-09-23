@@ -137,6 +137,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StudentFollow
   player: {fileID: 0}
   speed: 2
+  leaveSpeed: 4
+  despawnLimit: 10
   requestBubbleText: {fileID: 4351144507788898319}
 --- !u!70 &2389626930117626373
 CapsuleCollider2D:

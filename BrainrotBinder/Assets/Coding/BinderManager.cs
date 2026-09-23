@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using System.Collections;
 
 public class BinderManager : MonoBehaviour
@@ -7,20 +8,36 @@ public class BinderManager : MonoBehaviour
     public GameObject binderPanel;
     public GameObject wrongFeedback;
     public Slider brainrotBar;
+    public TMP_Text requestText;
 
-    public GameObject[] characterPages;
+    public BookPages bookPages;
 
     public int brainrotPerStudent = 20;
     public int wrongPenalty = 10;
 
     private GameObject currentStudent;
     private int correctCharacter;
-    private int currentPage;
+
+    private string[] characterNames =
+    {
+        "TUNG TUNG TUNG SAHUR",
+        "BALLERINA CAPPUCCINA",
+        "TRALALERO TRALALA",
+        "CAPPUCCINO ASSASSINO"
+    };
 
     private void Start()
     {
         brainrotBar.value = 0;
         wrongFeedback.SetActive(false);
+        binderPanel.SetActive(false);
+
+        if (requestText != null)
+        {
+            requestText.text = "";
+        }
+
+        Time.timeScale = 1f;
     }
 
     public void OpenBinder(
@@ -31,47 +48,24 @@ public class BinderManager : MonoBehaviour
         currentStudent = student;
         correctCharacter = requestedCharacter;
 
+        if (
+            requestText != null &&
+            requestedCharacter >= 0 &&
+            requestedCharacter < characterNames.Length
+        )
+        {
+            requestText.text =
+                "STUDENT WANTS:\n" + characterNames[requestedCharacter];
+        }
+
         binderPanel.SetActive(true);
 
-        currentPage =
-            Random.Range(0, characterPages.Length);
-
-        ShowPage(currentPage);
+        if (bookPages != null)
+        {
+            bookPages.ResetPages();
+        }
 
         Time.timeScale = 0f;
-    }
-
-    public void NextPage()
-    {
-        currentPage++;
-
-        if (currentPage >= characterPages.Length)
-        {
-            currentPage = 0;
-        }
-
-        ShowPage(currentPage);
-    }
-
-    public void PreviousPage()
-    {
-        currentPage--;
-
-        if (currentPage < 0)
-        {
-            currentPage =
-                characterPages.Length - 1;
-        }
-
-        ShowPage(currentPage);
-    }
-
-    private void ShowPage(int pageNumber)
-    {
-        for (int i = 0; i < characterPages.Length; i++)
-        {
-            characterPages[i].SetActive(i == pageNumber);
-        }
     }
 
     public void ChooseCharacter(int choice)
@@ -98,13 +92,20 @@ public class BinderManager : MonoBehaviour
         binderPanel.SetActive(false);
         Time.timeScale = 1f;
 
-        currentStudent
-            .GetComponent<StudentFollow>()
-            .Leave();
+        if (currentStudent != null)
+        {
+            StudentFollow studentFollow =
+                currentStudent.GetComponent<StudentFollow>();
 
-        currentStudent = null;
+            if (studentFollow != null)
+            {
+                studentFollow.Leave();
+            }
 
-        if (brainrotBar.value >= 100)
+            currentStudent = null;
+        }
+
+        if (brainrotBar.value >= brainrotBar.maxValue)
         {
             Debug.Log(
                 "THE WHOLE SCHOOL IS BRAINROTTED!"
@@ -137,8 +138,11 @@ public class BinderManager : MonoBehaviour
 
         while (elapsed < duration)
         {
-            float randomX = Random.Range(-12f, 12f);
-            float randomY = Random.Range(-12f, 12f);
+            float randomX =
+                Random.Range(-12f, 12f);
+
+            float randomY =
+                Random.Range(-12f, 12f);
 
             binderRect.anchoredPosition =
                 originalPosition +
@@ -149,7 +153,8 @@ public class BinderManager : MonoBehaviour
             yield return null;
         }
 
-        binderRect.anchoredPosition = originalPosition;
+        binderRect.anchoredPosition =
+            originalPosition;
 
         yield return new WaitForSecondsRealtime(0.3f);
 
@@ -160,9 +165,13 @@ public class BinderManager : MonoBehaviour
 
         if (currentStudent != null)
         {
-            currentStudent
-                .GetComponent<StudentFollow>()
-                .Leave();
+            StudentFollow studentFollow =
+                currentStudent.GetComponent<StudentFollow>();
+
+            if (studentFollow != null)
+            {
+                studentFollow.Leave();
+            }
 
             currentStudent = null;
         }
