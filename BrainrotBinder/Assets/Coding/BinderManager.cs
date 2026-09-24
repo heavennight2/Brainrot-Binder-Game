@@ -23,6 +23,9 @@ public class BinderManager : MonoBehaviour
     public AudioClip tralaleroSound;
     public AudioClip cappuccinoSound;
 
+    // Wrong Answer Sound
+    public AudioClip wrongBuzzSound;
+
     private GameObject currentStudent;
     private int correctCharacter;
 
@@ -37,6 +40,7 @@ public class BinderManager : MonoBehaviour
     private void Start()
     {
         brainrotBar.value = 0;
+
         wrongFeedback.SetActive(false);
         binderPanel.SetActive(false);
 
@@ -75,13 +79,13 @@ public class BinderManager : MonoBehaviour
         }
 
         // يوقف الطلاب والحركة
-        // التايمر يستمر لأنه يستخدم unscaledDeltaTime
+        // لكن التايمر يستمر
         Time.timeScale = 0f;
     }
 
     public void ChooseCharacter(int choice)
     {
-        // يشغل صوت الشخصية اللي ضغطنا عليها
+        // يشغل صوت الشخصية
         PlayCharacterSound(choice);
 
         if (choice == correctCharacter)
@@ -124,6 +128,7 @@ public class BinderManager : MonoBehaviour
         Debug.Log("Correct!");
 
         StopAllCoroutines();
+
         wrongFeedback.SetActive(false);
 
         brainrotBar.value += brainrotPerStudent;
@@ -143,7 +148,7 @@ public class BinderManager : MonoBehaviour
             currentStudent = null;
         }
 
-        // إذا امتلأ Brainrot Bar
+        // Check if Brainrot Bar is full
         if (brainrotBar.value >= brainrotBar.maxValue)
         {
             GameTimer gameTimer =
@@ -157,7 +162,6 @@ public class BinderManager : MonoBehaviour
             return;
         }
 
-        // يرجع الطلاب يمشون
         Time.timeScale = 1f;
     }
 
@@ -165,9 +169,19 @@ public class BinderManager : MonoBehaviour
     {
         Debug.Log("Wrong!");
 
+        // BUZZ SOUND
+        if (
+            characterAudioSource != null &&
+            wrongBuzzSound != null
+        )
+        {
+            characterAudioSource.PlayOneShot(wrongBuzzSound);
+        }
+
         brainrotBar.value -= wrongPenalty;
 
         StopAllCoroutines();
+
         StartCoroutine(HandleWrongChoice());
     }
 
@@ -196,7 +210,6 @@ public class BinderManager : MonoBehaviour
                 originalPosition +
                 new Vector2(randomX, randomY);
 
-            // يستمر حتى مع Time.timeScale = 0
             elapsed += Time.unscaledDeltaTime;
 
             yield return null;
@@ -208,6 +221,7 @@ public class BinderManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(0.3f);
 
         wrongFeedback.SetActive(false);
+
         binderPanel.SetActive(false);
 
         if (currentStudent != null)
@@ -223,7 +237,6 @@ public class BinderManager : MonoBehaviour
             currentStudent = null;
         }
 
-        // يرجع الطلاب يمشون
         Time.timeScale = 1f;
     }
 }
