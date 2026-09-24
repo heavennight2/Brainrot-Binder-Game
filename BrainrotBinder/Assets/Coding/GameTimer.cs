@@ -6,17 +6,36 @@ public class GameTimer : MonoBehaviour
     public TMP_Text timerText;
     public AudioSource bellAudio;
 
-    public float timeRemaining = 60f;
+    public GameObject winPanel;
+    public GameObject losePanel;
 
-    private bool timerFinished = false;
+    public float timeRemaining = 30f;
+
+    private bool gameEnded = false;
+
+    private void Start()
+    {
+        Time.timeScale = 1f;
+
+        if (winPanel != null)
+        {
+            winPanel.SetActive(false);
+        }
+
+        if (losePanel != null)
+        {
+            losePanel.SetActive(false);
+        }
+    }
 
     private void Update()
     {
-        if (timerFinished)
+        if (gameEnded)
         {
             return;
         }
 
+        // مهم: يخلي التايمر يستمر حتى لو الطلاب موقفين
         timeRemaining -= Time.unscaledDeltaTime;
 
         int displayedTime =
@@ -27,13 +46,37 @@ public class GameTimer : MonoBehaviour
 
         if (timeRemaining <= 0)
         {
-            EndTimer();
+            LoseGame();
         }
     }
 
-    private void EndTimer()
+    public void WinGame()
     {
-        timerFinished = true;
+        if (gameEnded)
+        {
+            return;
+        }
+
+        gameEnded = true;
+
+        if (winPanel != null)
+        {
+            winPanel.SetActive(true);
+        }
+
+        Time.timeScale = 0f;
+
+        Debug.Log("YOU BRAINROTTED THE WHOLE SCHOOL!");
+    }
+
+    private void LoseGame()
+    {
+        if (gameEnded)
+        {
+            return;
+        }
+
+        gameEnded = true;
         timeRemaining = 0;
 
         timerText.text = "BELL: 0";
@@ -43,22 +86,23 @@ public class GameTimer : MonoBehaviour
             bellAudio.Play();
         }
 
+        if (losePanel != null)
+        {
+            losePanel.SetActive(true);
+        }
+
         Time.timeScale = 0f;
 
-        Debug.Log("THE BELL RANG!");
+        Debug.Log("YOU FAILED!");
     }
 
     public void AddTime(float seconds)
     {
-        if (timerFinished)
+        if (gameEnded)
         {
             return;
         }
 
         timeRemaining += seconds;
-
-        Debug.Log(
-            "Added " + seconds + " seconds!"
-        );
     }
 }

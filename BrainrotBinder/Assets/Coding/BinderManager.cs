@@ -15,6 +15,14 @@ public class BinderManager : MonoBehaviour
     public int brainrotPerStudent = 20;
     public int wrongPenalty = 10;
 
+    // Character Sounds
+    public AudioSource characterAudioSource;
+
+    public AudioClip tungTungSound;
+    public AudioClip ballerinaSound;
+    public AudioClip tralaleroSound;
+    public AudioClip cappuccinoSound;
+
     private GameObject currentStudent;
     private int correctCharacter;
 
@@ -55,7 +63,8 @@ public class BinderManager : MonoBehaviour
         )
         {
             requestText.text =
-                "STUDENT WANTS:\n" + characterNames[requestedCharacter];
+                "STUDENT WANTS:\n" +
+                characterNames[requestedCharacter];
         }
 
         binderPanel.SetActive(true);
@@ -65,11 +74,16 @@ public class BinderManager : MonoBehaviour
             bookPages.ResetPages();
         }
 
+        // يوقف الطلاب والحركة
+        // التايمر يستمر لأنه يستخدم unscaledDeltaTime
         Time.timeScale = 0f;
     }
 
     public void ChooseCharacter(int choice)
     {
+        // يشغل صوت الشخصية اللي ضغطنا عليها
+        PlayCharacterSound(choice);
+
         if (choice == correctCharacter)
         {
             CorrectChoice();
@@ -77,6 +91,31 @@ public class BinderManager : MonoBehaviour
         else
         {
             WrongChoice();
+        }
+    }
+
+    private void PlayCharacterSound(int choice)
+    {
+        if (characterAudioSource == null)
+        {
+            return;
+        }
+
+        if (choice == 0 && tungTungSound != null)
+        {
+            characterAudioSource.PlayOneShot(tungTungSound);
+        }
+        else if (choice == 1 && ballerinaSound != null)
+        {
+            characterAudioSource.PlayOneShot(ballerinaSound);
+        }
+        else if (choice == 2 && tralaleroSound != null)
+        {
+            characterAudioSource.PlayOneShot(tralaleroSound);
+        }
+        else if (choice == 3 && cappuccinoSound != null)
+        {
+            characterAudioSource.PlayOneShot(cappuccinoSound);
         }
     }
 
@@ -90,7 +129,6 @@ public class BinderManager : MonoBehaviour
         brainrotBar.value += brainrotPerStudent;
 
         binderPanel.SetActive(false);
-        Time.timeScale = 1f;
 
         if (currentStudent != null)
         {
@@ -105,12 +143,22 @@ public class BinderManager : MonoBehaviour
             currentStudent = null;
         }
 
+        // إذا امتلأ Brainrot Bar
         if (brainrotBar.value >= brainrotBar.maxValue)
         {
-            Debug.Log(
-                "THE WHOLE SCHOOL IS BRAINROTTED!"
-            );
+            GameTimer gameTimer =
+                FindAnyObjectByType<GameTimer>();
+
+            if (gameTimer != null)
+            {
+                gameTimer.WinGame();
+            }
+
+            return;
         }
+
+        // يرجع الطلاب يمشون
+        Time.timeScale = 1f;
     }
 
     private void WrongChoice()
@@ -148,6 +196,7 @@ public class BinderManager : MonoBehaviour
                 originalPosition +
                 new Vector2(randomX, randomY);
 
+            // يستمر حتى مع Time.timeScale = 0
             elapsed += Time.unscaledDeltaTime;
 
             yield return null;
@@ -161,8 +210,6 @@ public class BinderManager : MonoBehaviour
         wrongFeedback.SetActive(false);
         binderPanel.SetActive(false);
 
-        Time.timeScale = 1f;
-
         if (currentStudent != null)
         {
             StudentFollow studentFollow =
@@ -175,5 +222,8 @@ public class BinderManager : MonoBehaviour
 
             currentStudent = null;
         }
+
+        // يرجع الطلاب يمشون
+        Time.timeScale = 1f;
     }
 }
